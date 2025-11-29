@@ -1,11 +1,12 @@
-// import biblioteca yargs pentru a parsa argumentele
+const path = require('path');
+const caleENV = path.resolve(__dirname, '../.env');
+require('dotenv').config({path: caleENV});
+
 const yargs = require('yargs/yargs');
 const { hideBin } = require('yargs/helpers');
-//const Jimp = require ('jimp');
+const figlet = require('figlet');
+const { GoogleGenerativeAI} = require("@google/generative-ai");
 
-console.log("------------");
-console.log("   ASCII ART V0.1    ");
-console.log("------------");
 
 const argv = yargs(hideBin(process.argv))
     .usage('Utilizare: $0 [optiuni]')
@@ -24,19 +25,95 @@ const argv = yargs(hideBin(process.argv))
         conflicts: 'text'
     })
 
+    .option('desc',{
+        alias: 'd',
+        type: 'string',
+        description: 'Descrierea stilului dorit (pentru AI)',
+    })
+
     .help('help')
     .alias('help', 'h')
     .argv
 
-    //logica principala a aplicatiei
+const apiKey = process.env.GEMINI_API_KEY;
+let model = null;
+let genAI = null;
 
-if(argv.text){  //daca utilizatorul a furnizat optiunea --text
-    console.log(`Procesare fisier: "${argv.text}"`);
-    //TODO
-}else if(argv.file){
-    console.log(`Procesare fisier: "${argv.file}"`);
-    //TODO
-}else{
-    console.log('Nici-o optiune selectata; foloseste --help pentru a vedea optiunile')
+
+if(apiKey) {
+    genAI = new GoogleGenerativeAI(apiKey);
+    model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
 }
 
+console.log("------------");
+console.log("   ASCII ART V0.1    ");
+console.log("------------");
+
+const availableFonts = ['Ghost', 'Standard', 'Graffiti', '3D-ASCII', 'Script', 'Computer', 'Doom', 'Bubble'];
+
+async function getFontFromAPI(userDescription){
+    if(!model) return 'Standard';
+
+    console.log(">>>Intreb AI ul ce se potriveste...");
+
+    const prompt = `
+        Ești un asistent care alege fonturi ASCII.
+        Utilizatorul vrea un text care arată: "${userDescription}".
+        Alege UN SINGUR font din această listă care se potrivește cel mai bine: ${availableFonts.join(', ')}.
+        Răspunde DOAR cu numele fontului, nimic altceva.
+    `;
+
+    try {
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        const text = response.text().trim();
+
+        if(availableFonts.includes(text)){
+            return text;
+        }else{
+            return 'Standard';
+        }
+    }catch(error){
+        console.error("Eroare AI:", error.message);
+        return 'Standard';
+    }
+}
+
+(async () => {
+    
+    
+    if (argv.text) {
+        console.log(`Procesare text: "${argv.text}"`);
+        
+        let selectedFont = 'Standard';
+
+
+        if (argv.desc) {
+            selectedFont = await getFontFromAPI(argv.desc);
+            console.log(`>>> AI-ul a ales fontul: ${selectedFont}`);
+        }
+
+
+        figlet.text(argv.text, {
+            font: selectedFont,
+            width: 80
+        }, function(err, data) {
+            if (err) {
+                console.log('Eroare Figlet...');
+                return;
+            }
+            console.log(data);
+        });
+
+
+    } else if (argv.file) {
+        console.log(`Procesare fisier: "${argv.file}"`);
+        console.log("(Funcționalitatea pentru imagini este în lucru...)");
+
+
+
+    } else {
+        console.log('Nicio optiune selectata; foloseste --help pentru a vedea optiunile');
+    }
+
+})();
