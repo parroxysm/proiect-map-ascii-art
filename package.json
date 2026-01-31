@@ -19,6 +19,12 @@
   },
   "homepage": "https://github.com/parroxysm/proiect-map-ascii-art#readme",
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "dotenv": "^17.2.3",
+    "expo": "^54.0.31",
+    "expo-image-manipulator": "~14.0.8",
+    "expo-image-picker": "~17.0.10",
+    "figlet": "^1.9.4",
     "jimp": "^1.6.0",
     "yargs": "^18.0.0"
   }
