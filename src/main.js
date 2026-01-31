@@ -49,11 +49,11 @@ let genAI = null;
 
 if (apiKey) {
     genAI = new GoogleGenerativeAI(apiKey);
-    model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
 }
 
 console.log("------------");
-console.log("   ASCII ART V1.2 (Color Fixed)   ");
+console.log("   ASCII ART V1.0   ");
 console.log("------------");
 
 const availableFonts = [
@@ -174,12 +174,10 @@ async function processImageToAscii(filePath, useColor, invert) {
         });
 
     } else if (argv.file) {
-        console.log(`🖼️  Procesez imaginea: "${argv.file}" (Color:${argv.color})...`);
+        console.log(`Procesez imaginea: "${argv.file}" (Color:${argv.color})...`);
         await processImageToAscii(argv.file, argv.color, argv.invert);
 
     } else {
-        console.log('Nicio optiune selectata.');
-        console.log('Incearca cu culori:');
-        console.log('  node main.js -f poza.jpg --color');
+        console.log('Nicio optiune selectata. Foloseste --help pentru detalii.');
     }
 })();
