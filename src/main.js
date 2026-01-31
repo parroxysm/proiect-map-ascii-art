@@ -60,7 +60,7 @@ const availableFonts = [
     '3-d', '3x5', '5lineoblique', 'acrobatic', 'alligator',
     'alligator2', 'alphabet', 'avatar', 'banner', 'banner3-D',
     'banner3', 'banner4', 'barbwire', 'basic', 'bell',
-    'big', 'bigchief', 'binary', 'block', 'bubble',
+    'big', 'bigchief', 'binary', 'block', 'Bubble',
     'bulbhead', 'caligraphy', 'catwalk', 'chunky', 'coinstak',
     'colossal', 'computer', 'contessa', 'contrast', 'cosmic',
     'cosmike', 'cricket', 'cursive', 'cyberlarge', 'cybermedium',
@@ -163,14 +163,37 @@ async function processImageToAscii(filePath, useColor, invert) {
 (async () => {
     if (argv.text) {
         console.log(`Procesare text: "${argv.text}"`);
+        
         let selectedFont = 'Standard';
+        
         if (argv.desc) {
             selectedFont = await getFontFromAPI(argv.desc);
+            
+            if (selectedFont) {
+                 selectedFont = selectedFont.charAt(0).toUpperCase() + selectedFont.slice(1);
+            }
+
             console.log(`>>> AI-ul a ales fontul: ${selectedFont}`);
         }
-        figlet.text(argv.text, { font: selectedFont, width: 80 }, function (err, data) {
-            if (err) return;
-            console.log(data);
+
+        await new Promise((resolve, reject) => {
+            figlet.text(argv.text, {
+                font: selectedFont,
+                width: 80
+            }, function(err, data) {
+                if (err) {
+                    console.log(`EROARE FONT: Nu pot încărca '${selectedFont}'.`);
+                    console.log("Detalii tehnice:", err.message);
+                    
+                    figlet.text(argv.text, { font: 'Standard', width: 80 }, function(err2, data2) {
+                        console.log(data2);
+                        resolve();
+                    });
+                } else {
+                    console.log(data);
+                    resolve();
+                }
+            });
         });
 
     } else if (argv.file) {
@@ -178,6 +201,6 @@ async function processImageToAscii(filePath, useColor, invert) {
         await processImageToAscii(argv.file, argv.color, argv.invert);
 
     } else {
-        console.log('Nicio optiune selectata. Foloseste --help pentru detalii.');
+        console.log("Nicio optiune selectata. Foloseste --help pentru detalii.");
     }
 })();
